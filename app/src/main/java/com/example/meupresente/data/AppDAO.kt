@@ -35,8 +35,15 @@ interface AppDAO {
     suspend fun deleteGift(gift: Gift)
 
     // --- Funções de Amizade ---
+
+    /**
+     * Insere uma nova relação de amizade.
+     */
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun addFriend(friendship: Friendship)
+    suspend fun addFriendship(friendship: Friendship)
+
+ //   @Insert(onConflict = OnConflictStrategy.REPLACE)
+ //   suspend fun addFriend(friendship: Friendship)
 
     /**
      * Busca todos os usuários cujo nome contém o texto da busca.
@@ -47,25 +54,22 @@ interface AppDAO {
     suspend fun searchUsers(query: String, currentUserId: Long): List<User>
 
     /**
-     * Insere uma nova relação de amizade.
-     */
-  //  @Insert
- //   suspend fun addFriendship(friendship: Friendship)
-
-    /**
      * Remove uma relação de amizade.
-     * Note que precisamos checar ambas as direções da amizade (user1 -> user2 e user2 -> user1).
      */
-    @Query("DELETE FROM friendships WHERE (userId = :user1Id AND userId = :user2Id) OR (userId = :user2Id AND userId = :user1Id)")
-    fun removeFriendship(user1Id: Long, user2Id: Long)
+    @Query("DELETE FROM friendships WHERE (userId = :userId AND friendEmail = :friendEmail)")
+    fun removeFriendship(userId: Long, friendEmail: String)
+
+    @Query("SELECT * FROM friendships WHERE userId = :userId")
+    fun getFriendships (userId: Long): Flow<List<Friendship>>
 
     /**
      * Verifica se uma amizade específica existe entre dois usuários.
      * Retorna 1 (true) se existir, 0 (false) se não.
      */
+   /*
     @Query("SELECT EXISTS(SELECT 1 FROM friendships WHERE (userId = :user1Id AND userId = :user2Id) OR (userId = :user2Id AND userId = :user1Id)) LIMIT 1")
     suspend fun friendshipExists(user1Id: Long, user2Id: Long): Boolean
-
+    */
 
 
 }

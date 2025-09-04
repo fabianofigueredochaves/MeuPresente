@@ -9,5 +9,7 @@ import androidx.room.ForeignKey
 )
 data class Friendship(
     val userId: Long, // ID do usuário que adicionou o amigo
-    val friendEmail: String // Email do amigo adicionado
+    val friendEmail: String, // Email do amigo adicionado
+    val friendName: String,
+    val birthday: String
 )

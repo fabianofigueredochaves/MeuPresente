@@ -11,4 +11,5 @@ data class User(
     val email: String,
     val passwordHash: String, // Nunca armazene senhas em texto puro!
     val birthday: String // Pode usar String "dd/MM/yyyy" ou um Long para o timestamp
+
 )

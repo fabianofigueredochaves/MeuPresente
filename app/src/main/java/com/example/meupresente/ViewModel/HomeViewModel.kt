@@ -57,11 +57,15 @@ class HomeViewModel(
         if (friendEmail.isBlank()) return
 
         viewModelScope.launch {
+            /*
             val friendship = Friendship(
                 userId = userId,
                 friendEmail = friendEmail.lowercase()
             )
-            repository.addFriend(friendship)
+            // repository.addFriend(friendship)
+            */
+            repository.addFriend(userId, friendEmail.lowercase())
+
         }
     }
 

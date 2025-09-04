@@ -57,14 +57,14 @@ fun DashboardScreen(
 
             // Botão para Gerenciar Amigos
             DashboardButton(
-                text = "Adicionar e Remover Amigos",
+                text = "Adicionar, Remover e Visualizar Amigos",
             icon = Icons.Outlined.Face,
             onClick = {
                 // Criaremos esta rota no futuro
-                // navController.navigate(\"manage_friends/$userId\")
+                 navController.navigate("manage_friends/$userId")
             }
             )
-
+            /*
             Spacer(modifier = Modifier.height(20.dp))
 
             // Botão para Visualizar Amigos
@@ -76,6 +76,8 @@ fun DashboardScreen(
                 // navController.navigate(\"friends_list/$userId\")
             }
             )
+            */
+
         }
     }
 }

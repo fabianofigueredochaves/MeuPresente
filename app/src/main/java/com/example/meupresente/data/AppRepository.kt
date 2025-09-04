@@ -43,9 +43,31 @@ class AppRepository(private val appDAO: AppDAO) {
     }
 
     // Funções de Amizade
-    suspend fun addFriend(friendship: Friendship) {
-        appDAO.addFriend(friendship)
+
+
+    suspend fun searchUsers(query: String, currentUserId: Long) = appDAO.searchUsers(query, currentUserId)
+
+    suspend fun addFriend(currentUserId: Long, friendEmail: String) {
+        val friendship = Friendship(userId = currentUserId, friendEmail = friendEmail)
+        appDAO.addFriendship(friendship)
     }
+
+
+    suspend fun removeFriend(currentUserId: Long, friendEmail: String) {
+        appDAO.removeFriendship(currentUserId, friendEmail)
+    }
+
+    fun getFriendships(currentUserId: Long): Flow<List<Friendship>> {
+        return appDAO.getFriendships(currentUserId)
+    }
+
+/*
+    suspend fun friendshipExists(currentUserId: Long, friendId: Long): Boolean {
+        return appDAO.friendshipExists(currentUserId, friendId)
+    }
+*/
+
+
 }
 /*
 private fun AppDao.addFriend(friendship: Friendship) {}
