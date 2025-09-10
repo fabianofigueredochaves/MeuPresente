@@ -7,6 +7,8 @@ import com.example.meupresente.models.User // Importe seu modelo User
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.security.MessageDigest // Import para hashing
+import android.util.Patterns // Import para validação de e-mail
 
 // Estado que a UI vai observar
 sealed class LoginState {
@@ -40,11 +42,20 @@ class LoginViewModel(private val repository: AppRepository) : ViewModel() {
         // Inicia uma coroutine no escopo do ViewModel
         viewModelScope.launch {
             try {
+                // 1. Validação de E-mail
+                if (!isValidEmail(email)) {
+                    _loginState.value = LoginState.Error("Formato de e-mail inválido.")
+                    return@launch
+                    }
+
                 // Busca o usuário pelo e-mail usando o repositório
                 val user = repository.getUserByEmail(email)
 
                 // Verifica se o usuário foi encontrado e se a senha corresponde
-                if (user != null && user.passwordHash == password) {
+            //    if (user != null && user.passwordHash == password) {
+                // 2. Hashing da senha digitada para comparação
+                val hashedPasswordInput = hashString(password)
+                if (user != null && user.passwordHash == hashedPasswordInput) { // Compara os hashes
                     _loginState.value = LoginState.Success(user)
                 } else {
                     _loginState.value = LoginState.Error("E-mail ou senha inválidos.")
@@ -62,4 +73,24 @@ class LoginViewModel(private val repository: AppRepository) : ViewModel() {
     fun resetState() {
         _loginState.value = LoginState.Idle
     }
+  
+    // --- Funções Auxiliares ---
+    private fun isValidEmail(email: String): Boolean {
+            return Patterns.EMAIL_ADDRESS.matcher(email).matches()
+        }
+
+    private fun hashString(input: String): String {
+            val HEX_CHARS = "0123456789ABCDEF"
+            val bytes = MessageDigest.getInstance("SHA-256").digest(input.toByteArray())
+            val result = StringBuilder(bytes.size * 2)
+
+            bytes.forEach {
+                    val i = it.toInt()
+                    result.append(HEX_CHARS[i shr 4 and 0x0f])
+                    result.append(HEX_CHARS[i and 0x0f])
+                }
+            return result.toString()
+        }
+    
+    
 }

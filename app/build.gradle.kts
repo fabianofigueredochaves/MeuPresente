@@ -1,10 +1,13 @@
+import org.gradle.kotlin.dsl.implementation
+import org.gradle.kotlin.dsl.invoke
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-
+  //  id("com.android.application")
     id("com.google.devtools.ksp") version "2.1.21-2.0.1"
-
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -55,6 +58,20 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+
+    //implementation(libs.firebase.bom)
+   // implementation(libs.firebase.analytics)
+
+    // Firebase platform (BOM) para gerenciar as versões das bibliotecas
+    //implementation(platform(libs.firebase.bom:'32''3''1')) // <--- VERIFIQUE A VERSÃO AQUI
+    implementation(platform(libs.firebase.bom))
+    // Firebase Authentication
+    //implementation 'com.google.firebase:firebase-auth-ktx' // <--- ESSA É A DEPENDÊNCIA QUE ADICIONA FirebaseAuth
+    // Firebase Cloud Firestore
+    //implementation 'com.google.firebase:firebase-firestore-ktx' // <--- ESSA É A DEPENDÊNCIA QUE ADICIONA FirebaseFirestore
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.auth.ktx)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

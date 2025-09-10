@@ -11,12 +11,7 @@ import androidx.room.PrimaryKey
         parentColumns = ["id"],
         childColumns = ["userId"],
         onDelete = ForeignKey.CASCADE // Se o usuário for deletado, seus presentes também serão
-    ), ForeignKey(
-        entity = Friendship::class,
-        parentColumns = ["friendEmail"],
-        childColumns = ["userId"],
-        onDelete = ForeignKey.CASCADE)
-    ]
+    )]
 )
 data class Gift(
     @PrimaryKey(autoGenerate = true)
@@ -24,5 +19,4 @@ data class Gift(
     val userId: Long, // Chave estrangeira para o usuário
     val description: String,
     val isWanted: Boolean, // true se ele quer ganhar, false se ele NÃO quer ganhar
-    val isFriend: Boolean
 )

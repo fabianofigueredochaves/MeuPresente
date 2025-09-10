@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 //import com.example.meupresente.MeuPresente
+import com.example.meupresente.ui.components.MainAppBar // Importar MainAppBar
 import com.example.meupresente.models.Gift
 import com.example.meupresente.ViewModel.HomeViewModel
 import com.example.meupresente.ViewModel.HomeViewModelFactory
@@ -38,12 +39,19 @@ fun HomeScreen(
     val factory = HomeViewModelFactory(appRepository, userId)
     val homeViewModel: HomeViewModel = viewModel(factory = factory)
 
+    var userName by remember { mutableStateOf("Carregando...") } // Estado padrão
+    LaunchedEffect(userId) { // Dispara quando o userId muda
+          val user = appRepository.getUserById(userId)
+          userName = user?.name ?: "Usuário Desconhecido"
+    }
+
     // --- Coleta dos Estados da UI ---
     val wishedGifts by homeViewModel.wishedGifts.collectAsState()
     val unwishedGifts by homeViewModel.unwishedGifts.collectAsState()
     var newGiftDescription by remember { mutableStateOf("") }
 
         Scaffold(
+           /*
             topBar = {
                 TopAppBar(
                     title = { Text("Minha Lista de Presentes") },
@@ -60,6 +68,8 @@ fun HomeScreen(
                     }
                 )
             }
+        */
+        topBar = { MainAppBar(userName = userName, screenTitle = "Minha Lista de Presentes", navController = navController) } // Substituído por MainAppBar
         ) { paddingValues ->
                     Column(
                         modifier = Modifier

@@ -1,15 +1,19 @@
 package com.example.meupresente.data
 
-
 import com.example.meupresente.models.Friendship
 import com.example.meupresente.models.Gift
 import com.example.meupresente.models.User
 import kotlinx.coroutines.flow.Flow
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await // Para usar .await() em tarefas Firebase
 
 // O repositório precisa do DAO para acessar o banco de dados.
 // Recebemos o DAO através do construtor.
 class AppRepository(private val appDAO: AppDAO) {
 
+ //   private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
     // Funções de Usuário
     suspend fun insertUser(user: User) {
         appDAO.insertUser(user)
@@ -17,6 +21,9 @@ class AppRepository(private val appDAO: AppDAO) {
 
     suspend fun getUserByEmail(email: String): User? {
         return appDAO.getUserByEmail(email)
+    }
+    suspend fun getUserById(userId: Long): User? {
+        return appDAO.getUserById(userId)
     }
 
     // Funções de Presente
@@ -42,13 +49,36 @@ class AppRepository(private val appDAO: AppDAO) {
         return appDAO.getUnwishedGifts(userId)
     }
 
-    // Funções de Amizade
 
+/*
+    // --- Funções de Autenticação Firebase ---
+
+    // Retorna o usuário Firebase logado atualmente
+    fun getCurrentFirebaseUser(): FirebaseUser? {
+            return firebaseAuth.currentUser
+        }
+
+    // Cadastra um novo usuário no Firebase Auth
+    suspend fun registerUserWithFirebase(email: String, password: String): FirebaseUser? {
+            return firebaseAuth.createUserWithEmailAndPassword(email, password).result?.user
+        }
+
+    // Loga um usuário no Firebase Auth
+    suspend fun loginUserWithFirebase(email: String, password: String): FirebaseUser? {
+            return firebaseAuth.signInWithEmailAndPassword(email, password).result?.user
+        }
+
+    // Faz logout do usuário do Firebase Auth
+    fun logoutFirebaseUser() {
+            firebaseAuth.signOut()
+        }
+   */
+    // Funções de Amizade
 
     suspend fun searchUsers(query: String, currentUserId: Long) = appDAO.searchUsers(query, currentUserId)
 
     suspend fun addFriend(currentUserId: Long, friendEmail: String) {
-        val friendship = Friendship(userId = currentUserId, friendEmail = friendEmail)
+        val friendship = Friendship(userId = currentUserId, friendEmail = friendEmail, friendName = "", birthday = "")
         appDAO.addFriendship(friendship)
     }
 

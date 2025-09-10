@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.map // Importar o operador map
+import android.util.Patterns // Import para validação de e-mail
 
 // Eventos para a UI (ex: SnackBar)
 sealed class ManageFriendsEvent {
@@ -64,14 +65,19 @@ class ManageFriendsViewModel(
                 return@launch
             }
 
-            /*
+            if (!isValidEmail(emailToAdd)) {
+                    _event.emit(ManageFriendsEvent.ShowMessage("Formato de e-mail de amigo inválido."))
+                    return@launch
+            }
+
+
             // Evitar adicionar a si mesmo
             val currentUser = repository.getUserById(currentUserId) // Seu TXT tem getUserById
             if (currentUser != null && emailToAdd == currentUser.email.lowercase()) {
                 _event.emit(ManageFriendsEvent.ShowMessage("Você não pode adicionar a si mesmo como amigo(a)."))
                 return@launch
             }
-
+            /*
 
             // Precisamos verificar se o e-mail existe no banco de dados geral de usuários
             val friendUser = repository.getUserByEmail(emailToAdd) // Seu TXT tem getUserByEmail
@@ -96,6 +102,10 @@ class ManageFriendsViewModel(
         }
     }
 
+    // --- Função Auxiliar de Validação ---
+    private fun isValidEmail(email: String): Boolean {
+        return Patterns.EMAIL_ADDRESS.matcher(email).matches()
+    }
     fun removeFriend(friendEmail: String) {
         viewModelScope.launch {
             repository.removeFriend(currentUserId, friendEmail.lowercase())

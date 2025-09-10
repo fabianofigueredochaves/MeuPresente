@@ -15,6 +15,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.compose.ui.platform.LocalContext // Import adicionado
+import com.example.meupresente.ViewModel.MeuPresenteApplication // Import adicionado
+import androidx.compose.runtime.LaunchedEffect // Import adicionado
+import androidx.compose.runtime.remember // Import adicionado
+import androidx.compose.runtime.mutableStateOf // Import adicionado
+import androidx.compose.runtime.getValue // Import adicionado
+import androidx.compose.runtime.setValue // Import adicionado
+
 import com.example.meupresente.ui.components.MainAppBar // Vamos criar este no próximo passo
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -22,11 +30,20 @@ import com.example.meupresente.ui.components.MainAppBar // Vamos criar este no p
 fun DashboardScreen(
     userId: Long,
     navController: NavController
-) {
+    ) { // Adicionando o contexto e o estado do nome do usuário
+    val context = LocalContext.current
+    val appRepository = (context.applicationContext as MeuPresenteApplication).repository
+    var userName by remember { mutableStateOf("Carregando...") } // Estado padrão
+
+    LaunchedEffect(userId) { // Dispara quando o userId muda
+        val user = appRepository.getUserById(userId)
+        userName = user?.name ?: "Usuário Desconhecido"
+    }
     Scaffold(
         topBar = {
             // Usando nosso AppBar reutilizável
-            MainAppBar(title = "User", navController = navController)
+        //    MainAppBar(title = "User", navController = navController)
+            MainAppBar(userName = userName, screenTitle = "Dashboard", navController = navController) // Atualizado
         }
     ) { paddingValues ->
         Column(

@@ -11,6 +11,8 @@ import androidx.navigation.navArgument
 import com.example.meupresente.ViewModel.MeuPresenteApplication
 import com.example.meupresente.data.AppRepository
 import com.example.meupresente.ui.register.RegisterScreen
+import java.net.URLEncoder // Import para codificar o e-mail
+import java.nio.charset.StandardCharsets // Import para codificar o e-mail
 
 @Composable
 fun AppNavigation() {
@@ -63,9 +65,32 @@ fun AppNavigation() {
             )
         }
 
+
+        // Nova rota para a tela de presentes do amigo
+        composable(
+          //  route = "friend_gifts/{friendEmail}",
+          //  arguments = listOf(navArgument("friendEmail") { type = NavType.StringType })
+         route = "friend_gifts/{userId}/{friendEmail}", // Adiciona userId aqui
+         arguments = listOf(
+            navArgument("userId") { type = NavType.LongType }, // Parâmetro para o ID do usuário logado
+            navArgument("friendEmail") { type = NavType.StringType }
+         )
+
+        ) { backStackEntry ->
+           // val friendEmail = backStackEntry.arguments?.getString("friendEmail") ?: ""
+           // FriendGiftsScreen(friendEmail = friendEmail, navController = navController)
+           val userId = backStackEntry.arguments?.getLong("userId") ?: 0L // Pega o userId
+           val friendEmail = backStackEntry.arguments?.getString("friendEmail") ?: ""
+           FriendGiftsScreen(userId = userId, friendEmail = friendEmail, navController = navController)
+
+        }
+
+
     }
 
 }
+
+
         /*
 
         composable("home/{userId}") { backStackEntry ->

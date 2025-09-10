@@ -57,7 +57,7 @@ interface AppDAO {
      * Remove uma relação de amizade.
      */
     @Query("DELETE FROM friendships WHERE (userId = :userId AND friendEmail = :friendEmail)")
-    fun removeFriendship(userId: Long, friendEmail: String)
+    suspend fun removeFriendship(userId: Long, friendEmail: String)
 
     @Query("SELECT * FROM friendships WHERE userId = :userId")
     fun getFriendships (userId: Long): Flow<List<Friendship>>

@@ -1,5 +1,6 @@
 package com.example.meupresente.ui.compose
 
+import androidx.compose.foundation.clickable // Import adicionado
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -7,17 +8,22 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.meupresente.data.AppRepository
-import com.example.meupresente.models.User // Ainda pode ser necessário para a Factory
+// Importação de User não é mais estritamente necessária para a Factory, mas pode ser mantida se houver planos futuros.
+// import com.example.meupresente.models.User
 import com.example.meupresente.ui.components.MainAppBar
 import com.example.meupresente.ViewModel.ManageFriendsEvent
 import com.example.meupresente.ViewModel.ManageFriendsViewModel
+import com.example.meupresente.ViewModel.MeuPresenteApplication
 import kotlinx.coroutines.flow.collectLatest
+import java.net.URLEncoder // Import adicionado para codificar o e-mail na navegação
+import java.nio.charset.StandardCharsets // Import adicionado para especificar o charset na codificação
 
 // Sua Factory continua a mesma, pois ainda precisa do AppRepository e userId.
 class ManageFriendsViewModelFactory(private val repository: AppRepository, private val userId: Long) : ViewModelProvider.Factory {
@@ -37,16 +43,24 @@ fun ManageFriendsScreen(
     navController: NavController,
     repository: AppRepository
 ) {
+
+    val context = LocalContext.current
+    val appRepository = (context.applicationContext as MeuPresenteApplication).repository // Precisamos do repositório para buscar o nome do usuário
+    var userName by remember { mutableStateOf("Carregando...") } // Estado padrão
+    LaunchedEffect(userId) { // Dispara quando o userId muda
+    val user = appRepository.getUserById(userId)
+    userName = user?.name ?: "Usuário Desconhecido"
+    }
+
     val factory = ManageFriendsViewModelFactory(repository, userId)
     val viewModel: ManageFriendsViewModel = viewModel(factory = factory)
 
     val friendEmailInput by viewModel.friendEmailInput.collectAsState()
-    // 👇 MUDANÇA AQUI 👇: friendsList agora é List<String>
     val friendsList by viewModel.friends.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
 
-    // Coleta eventos do ViewModel para mostrar mensagens
+    // Coleta eventos do ViewModel para mostrar mensagens (SnackBar)
     LaunchedEffect(Unit) {
         viewModel.event.collectLatest { event ->
             when (event) {
@@ -58,7 +72,8 @@ fun ManageFriendsScreen(
     }
 
     Scaffold(
-        topBar = { MainAppBar(title = "Gerenciar Amigos", navController = navController) },
+      //  topBar = { MainAppBar(title = "Gerenciar Amigos", navController = navController) },
+        topBar = { MainAppBar(userName = userName, screenTitle = "Gerenciar Amigos", navController = navController) }, // Atualizado
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         Column(
@@ -73,7 +88,6 @@ fun ManageFriendsScreen(
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -99,7 +113,6 @@ fun ManageFriendsScreen(
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-
             if (friendsList.isEmpty()) {
                 Text(
                     "Você ainda não tem amigos adicionados.",
@@ -108,12 +121,17 @@ fun ManageFriendsScreen(
                 )
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    // �� MUDANÇA AQUI 👇: items agora aceita String
                     items(friendsList) { friendEmail ->
-                        // 👇 MUDANÇA AQUI 👇: Chamada para FriendItem com apenas o email
                         FriendItem(
                             friendEmail = friendEmail,
-                            onRemoveFriend = { viewModel.removeFriend(friendEmail) }
+                            onRemoveFriend = { viewModel.removeFriend(friendEmail) },
+                            onViewGifts = {
+                                // Codifica o e-mail para que possa ser passado com segurança na URL da rota
+                               // val encodedEmail = URLEncoder.encode(it, StandardCharsets.UTF_8.toString())
+                               // navController.navigate("friend_gifts/$encodedEmail")
+                                val encodedEmail = URLEncoder.encode(it, StandardCharsets.UTF_8.toString()) // Atualizado para incluir userId
+                                navController.navigate("friend_gifts/$userId/$encodedEmail") // Passa o userId também
+                            }
                         )
                     }
                 }
@@ -123,24 +141,39 @@ fun ManageFriendsScreen(
 }
 
 @Composable
-// 👇 MUDANÇA AQUI 👇: FriendItem agora recebe String
-private fun FriendItem(
-    friendEmail: String,
-    onRemoveFriend: () -> Unit
+// Tornei a função pública para facilitar a visibilidade, se FriendGiftsScreen for em outro arquivo/pacote.
+// Em um projeto maior, você pode mover esta Composable para um arquivo de componentes separável.
+fun FriendItem(
+    friendEmail: String, // E-mail do amigo
+    onRemoveFriend: () -> Unit, // Callback para remover o amigo
+    onViewGifts: (String) -> Unit // Novo callback para visualizar os presentes
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            // Aplica o modificador clickable diretamente no Card para que toda a área do Card seja clicável
+            .clickable { onViewGifts(friendEmail) }
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween // Para espaçar o texto e o botão
         ) {
-            // 👇 MUDANÇA AQUI 👇: Exibindo apenas o email
-            Text(text = friendEmail, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
+            Text(
+                text = friendEmail,
+                modifier = Modifier.weight(1f), // Faz o texto ocupar o máximo de espaço possível
+                style = MaterialTheme.typography.bodyLarge
+            )
 
-            Spacer(modifier = Modifier.weight(1f)) // Empurra o botão para a direita
+            // Não é necessário Spacer(modifier = Modifier.weight(1f)) se usar SpaceBetween no horizontalArrangement
+            // Spacer(modifier = Modifier.weight(1f))
 
-            Button(onClick = onRemoveFriend, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
+            Button(
+                onClick = onRemoveFriend,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+            ) {
                 Text("Remover")
             }
         }

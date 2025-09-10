@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "465082042481",
+    "project_id": "meu-presente-55bad",
+    "storage_bucket": "meu-presente-55bad.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:465082042481:android:e4ede1149e6639865a33d0",
+        "android_client_info": {
+          "package_name": "com.example.meupresente"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "465082042481-hscfiio1giaj1088hko860vjr79l897b.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBE4weyPdRKIp_GRyVDsSaXqTumhLP4u8Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "465082042481-hscfiio1giaj1088hko860vjr79l897b.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
