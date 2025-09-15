@@ -21,6 +21,8 @@ import com.example.meupresente.ui.components.MainAppBar
 import com.example.meupresente.ViewModel.ManageFriendsEvent
 import com.example.meupresente.ViewModel.ManageFriendsViewModel
 import com.example.meupresente.ViewModel.MeuPresenteApplication
+import com.example.meupresente.models.Friendship
+import com.example.meupresente.models.SyncStatus
 import kotlinx.coroutines.flow.collectLatest
 import java.net.URLEncoder // Import adicionado para codificar o e-mail na navegação
 import java.nio.charset.StandardCharsets // Import adicionado para especificar o charset na codificação
@@ -121,15 +123,15 @@ fun ManageFriendsScreen(
                 )
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(friendsList) { friendEmail ->
+                    items(friendsList) { friendship ->
                         FriendItem(
-                            friendEmail = friendEmail,
-                            onRemoveFriend = { viewModel.removeFriend(friendEmail) },
+                            friendship = friendship,
+                            onRemoveFriend = { viewModel.removeFriend(friendship.friendEmail) },
                             onViewGifts = {
                                 // Codifica o e-mail para que possa ser passado com segurança na URL da rota
                                // val encodedEmail = URLEncoder.encode(it, StandardCharsets.UTF_8.toString())
                                // navController.navigate("friend_gifts/$encodedEmail")
-                                val encodedEmail = URLEncoder.encode(it, StandardCharsets.UTF_8.toString()) // Atualizado para incluir userId
+                                val encodedEmail = URLEncoder.encode(friendship.friendEmail, StandardCharsets.UTF_8.toString()) // Atualizado para incluir userId
                                 navController.navigate("friend_gifts/$userId/$encodedEmail") // Passa o userId também
                             }
                         )
@@ -144,15 +146,15 @@ fun ManageFriendsScreen(
 // Tornei a função pública para facilitar a visibilidade, se FriendGiftsScreen for em outro arquivo/pacote.
 // Em um projeto maior, você pode mover esta Composable para um arquivo de componentes separável.
 fun FriendItem(
-    friendEmail: String, // E-mail do amigo
+    friendship: Friendship, // E-mail do amigo
     onRemoveFriend: () -> Unit, // Callback para remover o amigo
-    onViewGifts: (String) -> Unit // Novo callback para visualizar os presentes
+    onViewGifts: (Friendship) -> Unit // Novo callback para visualizar os presentes
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             // Aplica o modificador clickable diretamente no Card para que toda a área do Card seja clicável
-            .clickable { onViewGifts(friendEmail) }
+            .clickable { onViewGifts(friendship) }
     ) {
         Row(
             modifier = Modifier
@@ -161,21 +163,33 @@ fun FriendItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween // Para espaçar o texto e o botão
         ) {
-            Text(
-                text = friendEmail,
-                modifier = Modifier.weight(1f), // Faz o texto ocupar o máximo de espaço possível
-                style = MaterialTheme.typography.bodyLarge
-            )
-
-            // Não é necessário Spacer(modifier = Modifier.weight(1f)) se usar SpaceBetween no horizontalArrangement
-            // Spacer(modifier = Modifier.weight(1f))
-
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = friendship.friendName ?: friendship.friendEmail, // Prefere nome, senão e-mail
+                    style = MaterialTheme.typography.titleMedium
+                )
+                if (friendship.friendName != null) { // Mostrar e-mail se o nome estiver disponível
+                    Text(
+                        text = friendship.friendEmail,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                if (friendship.syncStatus != SyncStatus.SYNCED) {
+                    Text(
+                        text = "(Pendente de verificação online)",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
             Button(
                 onClick = onRemoveFriend,
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
             ) {
                 Text("Remover")
             }
+
         }
     }
 }

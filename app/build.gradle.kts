@@ -48,7 +48,7 @@ android {
 dependencies {
 
     // Navigation Compose
-    implementation("androidx.navigation:navigation-compose:2.9.3")
+    implementation(libs.androidx.navigation.compose)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -72,6 +72,9 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.auth.ktx)
 
+    implementation(libs.kotlinx.coroutines.play.services)
+
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -80,11 +83,13 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    val roomVersion = "2.7.2"
-    implementation("androidx.room:room-runtime:$roomVersion")
-    ksp("androidx.room:room-compiler:$roomVersion") // Use ksp em vez de kapt
-    implementation("androidx.room:room-ktx:$roomVersion") // Suporte a Coroutines
+    //val roomVersion = "2.7.2"
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler) // Use ksp em vez de kapt
+    implementation(libs.androidx.room.ktx) // Suporte a Coroutines
 
     // ViewModel Compose
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.2")
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+
+    implementation(libs.androidx.work.runtime.ktx)
 }

@@ -54,11 +54,11 @@ fun DashboardScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                "O que você gostaria de fazer?",
-            style = MaterialTheme.typography.headlineSmall,
-            textAlign = TextAlign.Center
-            )
+           // Text(
+           //     "O que você gostaria de fazer?",
+          //  style = MaterialTheme.typography.headlineSmall,
+          //  textAlign = TextAlign.Center
+          //  )
             Spacer(modifier = Modifier.height(40.dp))
 
             // Botão para a Lista de Desejos

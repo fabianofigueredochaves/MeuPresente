@@ -1,3 +1,4 @@
+// Corrigir linha 80
 package com.example.meupresente.ui.register
 
 import androidx.lifecycle.ViewModel
@@ -5,11 +6,11 @@ import androidx.lifecycle.viewModelScope
 import com.example.meupresente.data.AppRepository
 import com.example.meupresente.models.User
 import kotlinx.coroutines.launch
-import java.security.MessageDigest // Import para hashing
-import java.text.SimpleDateFormat // Import para formatação de data
-import java.util.Date // Import para formatação de data
-import java.util.Locale // Import para formatação de data
-import android.util.Patterns // Import para validação de e-mail
+import java.security.MessageDigest
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import android.util.Patterns
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -27,7 +28,6 @@ class RegisterViewModel(private val repository: AppRepository) : ViewModel() {
     fun registerUser(name: String, email: String, password: String, birthday: String) {
         _registerState.value = RegisterState.Loading
 
-        // 1. Validação de Entrada
         if (name.isBlank() || email.isBlank() || password.isBlank() || birthday.isBlank()) {
             _registerState.value = RegisterState.Error("Todos os campos são obrigatórios.")
             return
@@ -37,18 +37,16 @@ class RegisterViewModel(private val repository: AppRepository) : ViewModel() {
             return
         }
         if (!isValidDate(birthday)) {
-            _registerState.value =
-                RegisterState.Error("Formato de data de nascimento inválido. Use DD/MM/AAAA.")
+            _registerState.value = RegisterState.Error("Formato de data de nascimento inválido. Use DD/MM/AAAA.")
             return
         }
-        // 2. Formatação do Nome
-        val formattedName = name
-            .filter { it.isLetter() || it.isWhitespace() } // Remove números e outros caracteres que não sejam letras ou espaços
-            .lowercase(Locale.ROOT) // Converte tudo para minúsculas
-            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() } // Primeira letra maiúscula
-            .trim() // Remove espaços em branco extras no início/fim
 
-        // Se o nome formatado ficar em branco (ex: só tinha números), ou se houver regras mais estritas.
+        val formattedName = name
+            .filter { it.isLetter() || it.isWhitespace() }
+            .lowercase(Locale.ROOT)
+            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() }
+            .trim()
+
         if (formattedName.isEmpty()) {
             _registerState.value = RegisterState.Error("Nome inválido.")
             return
@@ -56,23 +54,32 @@ class RegisterViewModel(private val repository: AppRepository) : ViewModel() {
 
         viewModelScope.launch {
             try {
-                // 3. Verifica se o usuário já existe
-                if (repository.getUserByEmail(email) != null) {
-                    _registerState.value = RegisterState.Error("Este e-mail já está cadastrado.")
+                // 1. Tenta cadastrar o usuário no Firebase Authentication
+                val firebaseUser = repository.registerUserWithFirebase(email, password)
+                if (firebaseUser == null) {
+                    _registerState.value = RegisterState.Error("Falha ao cadastrar no Firebase Auth. E-mail já em uso ou erro de servidor.")
                     return@launch
                 }
 
-                // 4. Hashing da Senha
+                // 2. Se o cadastro no Firebase Auth foi bem-sucedido, insere no DB local
                 val hashedPassword = hashString(password)
-
-                // 5. Criação e Inserção do Usuário
                 val newUser = User(
+                    firebaseUid = firebaseUser.uid, // NOVO: Salva o Firebase UID localmente
                     name = formattedName,
-                    email = email.lowercase(Locale.ROOT), // Salvar email em minúsculas para consistência
+                    email = email.lowercase(Locale.ROOT),
                     passwordHash = hashedPassword,
-                    birthday = birthday // A data já foi validada
+                    birthday = birthday
                 )
-                repository.insertUser(newUser)
+                val newUserId = repository.insertUser(newUser)
+
+                // 3. Salvar informações adicionais do usuário no Firestore
+                repository.saveUserToFirestore(newUser, firebaseUser.uid)
+
+                // NOVO: Dispara a sincronização completa após o registro bem-sucedido
+
+                //repository.performFullSync(newUserId, firebaseUser.uid)
+                repository.performFullSync(1, firebaseUser.uid)
+
                 _registerState.value = RegisterState.Success
 
             } catch (e: Exception) {
@@ -82,7 +89,6 @@ class RegisterViewModel(private val repository: AppRepository) : ViewModel() {
         }
     }
 
-    // --- Funções Auxiliares de Validação e Hashing ---
     private fun isValidEmail(email: String): Boolean {
         return Patterns.EMAIL_ADDRESS.matcher(email).matches()
     }
@@ -90,7 +96,7 @@ class RegisterViewModel(private val repository: AppRepository) : ViewModel() {
     private fun isValidDate(dateString: String): Boolean {
         return try {
             val format = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-            format.isLenient = false // Não permite datas inválidas como 30/02/2023
+            format.isLenient = false
             format.parse(dateString)
             true
         } catch (e: Exception) {
@@ -114,35 +120,3 @@ class RegisterViewModel(private val repository: AppRepository) : ViewModel() {
         _registerState.value = RegisterState.Idle
     }
 }
-
-/*
-
-class RegisterViewModel(private val repository: AppRepository) : ViewModel() {
-
-    fun registerUser(name: String, email: String, password: String, birthday: String, onRegistrationComplete: () -> Unit) {
-        // Validações básicas (você pode expandir isso)
-        if (name.isBlank() || email.isBlank() || password.isBlank()) {
-            // Aqui você poderia expor um estado de erro para a UI
-            return
-        }
-
-        viewModelScope.launch {
-            // Primeiro, verifica se o usuário já existe
-            if (repository.getUserByEmail(email) == null) {
-                // TODO: Criptografar a senha antes de salvar!
-                val newUser = User(
-                    name = name,
-                    email = email.lowercase(), // Salvar email em minúsculas para consistência
-                    passwordHash = password, // Lembre-se de substituir por um hash real
-                    birthday = birthday
-                )
-                repository.insertUser(newUser)
-                onRegistrationComplete() // Chama o callback para navegar para outra tela
-            } else {
-                // Usuário já existe, informe a UI sobre o erro
-            }
-        }
-    }
-}
-
- */

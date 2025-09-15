@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 data class User(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
+    val firebaseUid: String? = null, // NOVO: UID do usuário no Firebase
     val name: String,
     val email: String,
     val passwordHash: String, // Nunca armazene senhas em texto puro!
